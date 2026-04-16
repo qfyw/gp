@@ -1,0 +1,23 @@
+{
+  "test_date": "2026-04-16T10:18:37.539717",
+  "total_tests": 1,
+  "successful": 1,
+  "results": [
+    {
+      "name": "test_1",
+      "description": "基础测试（原始数据）",
+      "config": {},
+      "start_time": "2026-04-16T10:16:44.879238",
+      "success": true,
+      "error": null,
+      "metrics": {
+        "quest_avg_f1": 0.7586801630748999,
+        "quest_recall": 0.6912499999999999,
+        "quest_avg_f1_std": 0.2539647054695244,
+        "quest_recall_std": 0.3577075446506545,
+        "num_samples": 20
+      },
+      "end_time": "2026-04-16T10:18:37.539717"
+    }
+  ]
+}
