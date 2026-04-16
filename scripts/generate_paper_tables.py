@@ -44,10 +44,10 @@ Table 1: Comparison of Retrieval Strategies
 
             # 从配置中提取信息
             config = result.get('config', {})
-            vector = '✓' if config.get('RETRIEVAL_VECTOR_TOP_K', 0) > 0 else '✗'
-            keyword = '✓' if config.get('RETRIEVAL_KEYWORD_TOP_K', 0) > 0 else '✗'
-            bm25 = '✓' if config.get('BM25_ENABLED', '0') == '1' else '✗'
-            kg = '✓' if config.get('RETRIEVAL_GRAPH_MAX', 0) > 0 else '✗'
+            vector = 'Y' if config.get('RETRIEVAL_VECTOR_TOP_K', 0) > 0 else 'N'
+            keyword = 'Y' if config.get('RETRIEVAL_KEYWORD_TOP_K', 0) > 0 else 'N'
+            bm25 = 'Y' if config.get('BM25_ENABLED', '0') == '1' else 'N'
+            kg = 'Y' if config.get('RETRIEVAL_GRAPH_MAX', 0) > 0 else 'N'
 
             f1 = metrics.get('quest_avg_f1', 'N/A')
             recall = metrics.get('quest_recall', 'N/A')

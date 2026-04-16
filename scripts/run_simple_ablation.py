@@ -81,7 +81,7 @@ class SimpleAblationTest:
 
             elapsed_time = time.time() - start_time
 
-            print(f"\n✓ 测试完成 ({elapsed_time:.1f}s)")
+            print(f"\n[OK] 测试完成 ({elapsed_time:.1f}s)")
             print(f"Quest Avg F1:  {eval_results['quest_avg_f1_mean']:.4f} ± {eval_results['quest_avg_f1_std']:.4f}")
             print(f"Quest Recall:  {eval_results['quest_recall_mean']:.4f} ± {eval_results['quest_recall_std']:.4f}")
 
@@ -103,7 +103,7 @@ class SimpleAblationTest:
             print(f"详细结果已保存: {detail_file}")
 
         except Exception as e:
-            print(f"\n✗ 测试失败: {e}")
+            print(f"\n[X] 测试失败: {e}")
             result['error'] = str(e)
 
         result['end_time'] = datetime.now().isoformat()
@@ -190,7 +190,7 @@ class SimpleAblationTest:
 
             f1 = metrics.get('quest_avg_f1', 'N/A')
             recall = metrics.get('quest_recall', 'N/A')
-            status = '✓' if result['success'] else '✗'
+            status = 'OK' if result['success'] else 'FAIL'
 
             if isinstance(f1, float):
                 f1 = f"{f1:.4f}"
@@ -237,7 +237,7 @@ class SimpleAblationTest:
                     f1 if f1 else 'N/A',
                     recall if recall else 'N/A',
                     num_samples,
-                    '✓' if result['success'] else '✗'
+                    'OK' if result['success'] else 'FAIL'
                 ])
 
         print(f"对比表格已保存: {csv_file}")
@@ -281,7 +281,7 @@ class SimpleAblationTest:
                 if isinstance(recall, float):
                     recall = f"{recall:.4f}"
 
-                success_mark = '' if result['success'] else ' ❌'
+                success_mark = '' if result['success'] else ' [FAIL]'
                 f.write(f"| {name}{success_mark} | {description} | {f1} | {recall} | {num_samples} |\n")
 
             f.write("\n## 详细结果\n\n")
@@ -290,11 +290,11 @@ class SimpleAblationTest:
                 f.write(f"### {result['name']}: {result['description']}\n\n")
 
                 if not result['success']:
-                    f.write(f"**状态**: ❌ 失败\n\n")
+                    f.write(f"**状态**: [FAIL] 失败\n\n")
                     f.write(f"**错误**: {result.get('error', 'Unknown')}\n\n")
                     continue
 
-                f.write(f"**状态**: ✅ 成功\n\n")
+                f.write(f"**状态**: [OK] 成功\n\n")
 
                 metrics = result.get('metrics', {})
                 if metrics:
