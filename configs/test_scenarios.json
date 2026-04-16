@@ -1,0 +1,129 @@
+{
+  "test_scenarios": [
+    {
+      "name": "vector_only",
+      "description": "仅向量检索",
+      "config": {
+        "RETRIEVAL_VECTOR_TOP_K": 5,
+        "RETRIEVAL_KEYWORD_TOP_K": 0,
+        "RETRIEVAL_GRAPH_MAX": 0,
+        "BM25_ENABLED": "0",
+        "RERANK_ENABLED": "0",
+        "DOC_ONLY_MODE": "1"
+      }
+    },
+    {
+      "name": "vector_keyword",
+      "description": "向量 + 关键词检索",
+      "config": {
+        "RETRIEVAL_VECTOR_TOP_K": 5,
+        "RETRIEVAL_KEYWORD_TOP_K": 5,
+        "RETRIEVAL_GRAPH_MAX": 0,
+        "BM25_ENABLED": "0",
+        "RERANK_ENABLED": "0",
+        "DOC_ONLY_MODE": "1"
+      }
+    },
+    {
+      "name": "vector_keyword_bm25",
+      "description": "向量 + 关键词 + BM25",
+      "config": {
+        "RETRIEVAL_VECTOR_TOP_K": 5,
+        "RETRIEVAL_KEYWORD_TOP_K": 5,
+        "RETRIEVAL_GRAPH_MAX": 0,
+        "BM25_ENABLED": "1",
+        "BM25_TOP_K": 5,
+        "RERANK_ENABLED": "0",
+        "DOC_ONLY_MODE": "1"
+      }
+    },
+    {
+      "name": "full_hybrid_no_kg",
+      "description": "完整混合检索（无图谱）",
+      "config": {
+        "RETRIEVAL_VECTOR_TOP_K": 5,
+        "RETRIEVAL_KEYWORD_TOP_K": 5,
+        "RETRIEVAL_GRAPH_MAX": 0,
+        "BM25_ENABLED": "1",
+        "BM25_TOP_K": 5,
+        "RERANK_ENABLED": "1",
+        "RERANK_RECALL_MULT": 3,
+        "DOC_ONLY_MODE": "1"
+      }
+    },
+    {
+      "name": "full_hybrid_no_rerank",
+      "description": "完整混合检索（无重排序）",
+      "config": {
+        "RETRIEVAL_VECTOR_TOP_K": 5,
+        "RETRIEVAL_KEYWORD_TOP_K": 5,
+        "RETRIEVAL_GRAPH_MAX": 10,
+        "BM25_ENABLED": "1",
+        "BM25_TOP_K": 5,
+        "RERANK_ENABLED": "0",
+        "DOC_ONLY_MODE": "0"
+      }
+    },
+    {
+      "name": "full_hybrid",
+      "description": "完整混合检索",
+      "config": {
+        "RETRIEVAL_VECTOR_TOP_K": 5,
+        "RETRIEVAL_KEYWORD_TOP_K": 5,
+        "RETRIEVAL_GRAPH_MAX": 10,
+        "BM25_ENABLED": "1",
+        "BM25_TOP_K": 5,
+        "RERANK_ENABLED": "1",
+        "RERANK_RECALL_MULT": 3,
+        "DOC_ONLY_MODE": "0"
+      }
+    },
+    {
+      "name": "full_hybrid_larger_topk",
+      "description": "完整混合检索（增大top_k）",
+      "config": {
+        "RETRIEVAL_VECTOR_TOP_K": 8,
+        "RETRIEVAL_KEYWORD_TOP_K": 8,
+        "RETRIEVAL_GRAPH_MAX": 10,
+        "BM25_ENABLED": "1",
+        "BM25_TOP_K": 8,
+        "RERANK_ENABLED": "1",
+        "RERANK_RECALL_MULT": 3,
+        "DOC_ONLY_MODE": "0"
+      }
+    },
+    {
+      "name": "full_hybrid_high_recall",
+      "description": "完整混合检索（高召回）",
+      "config": {
+        "RETRIEVAL_VECTOR_TOP_K": 8,
+        "RETRIEVAL_KEYWORD_TOP_K": 8,
+        "RETRIEVAL_GRAPH_MAX": 10,
+        "BM25_ENABLED": "1",
+        "BM25_TOP_K": 8,
+        "RERANK_ENABLED": "1",
+        "RERANK_RECALL_MULT": 4,
+        "DOC_ONLY_MODE": "0"
+      }
+    }
+  ],
+  "baseline_tests": [
+    {
+      "name": "no_retrieval",
+      "description": "无检索（纯LLM）",
+      "use_retrieval": false
+    },
+    {
+      "name": "simple_rag",
+      "description": "简单RAG（向量+直接生成）",
+      "use_retrieval": true,
+      "simple_mode": true
+    },
+    {
+      "name": "full_method",
+      "description": "完整方法",
+      "use_retrieval": true,
+      "simple_mode": false
+    }
+  ]
+}

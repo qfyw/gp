@@ -105,6 +105,77 @@ RETRIEVAL_KEYWORD_TOP_K=8
 RETRIEVAL_GRAPH_MAX=10
 ```
 
+### 3. 运行 RAGQuestEval 评估
+
+#### 快速测试（3条示例数据）
+
+```bash
+python scripts/quick_test_ragquesteval.py
+```
+
+#### 完整测试（20条数据）
+
+```bash
+python scripts/test_ragquesteval.py \
+  --result-file datasets/ragquesteval_test_n20.csv \
+  --output-dir datasets \
+  --save-quest-gt
+```
+
+### 4. 运行消融实验（论文用）
+
+#### 一键运行完整流程
+
+```bash
+python scripts/run_all_tests.py \
+  --test-data datasets/ragquesteval_test_n20.csv \
+  --output-dir datasets/ablation_tests
+```
+
+这将自动：
+1. 运行消融实验
+2. 生成对比表格
+3. 生成论文用的 Markdown 和 LaTeX 表格
+
+#### 详细使用指南
+
+查看 [消融实验指南](./ABLATION_TEST_GUIDE.md)
+
+### 5. 入库数据
+
+```bash
+# 入库 CRUD 新闻数据
+python scripts/ingest_crud_news.py
+
+# 入库文本目录
+python scripts/ingest_txt_dir.py data/documents
+```
+
+### 6. 运行 Web 应用
+
+```bash
+streamlit run app.py
+```
+
+### 2. 配置环境变量
+
+复制 `.env.example` 为 `.env` 并填写配置：
+
+```env
+OPENAI_API_KEY=your_api_key
+OPENAI_API_BASE=https://dashscope.aliyuncs.com/compatible-mode/v1
+OPENAI_MODEL=qwen-flash
+
+# PostgreSQL
+POSTGRES_DSN=postgresql://postgres:password@localhost:5432/rag
+PGVECTOR_COLLECTION=crud_eval
+
+# 检索参数
+RETRIEVAL_VECTOR_TOP_K=8
+RETRIEVAL_KEYWORD_TOP_K=8
+RETRIEVAL_GRAPH_MAX=10
+```
+
 ### 3. 入库数据
 
 ```bash
