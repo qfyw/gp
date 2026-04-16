@@ -1,0 +1,60 @@
+{
+  "dir": "D:\\graduation project\\datasets\\compare_topk_n50",
+  "glob": "topk_*.csv",
+  "runs": [
+    {
+      "slug": "topk_v12_k5_g3",
+      "input": "D:\\graduation project\\datasets\\compare_topk_n50\\topk_v12_k5_g3.csv",
+      "n": 50,
+      "threshold": 0.8,
+      "correct": 28,
+      "accuracy": 0.56,
+      "mean_bertScore_text2vec": 0.7773253366351127
+    },
+    {
+      "slug": "topk_v3_k3_g3",
+      "input": "D:\\graduation project\\datasets\\compare_topk_n50\\topk_v3_k3_g3.csv",
+      "n": 50,
+      "threshold": 0.8,
+      "correct": 29,
+      "accuracy": 0.58,
+      "mean_bertScore_text2vec": 0.7897776800394058
+    },
+    {
+      "slug": "topk_v5_k5_g10",
+      "input": "D:\\graduation project\\datasets\\compare_topk_n50\\topk_v5_k5_g10.csv",
+      "n": 50,
+      "threshold": 0.8,
+      "correct": 30,
+      "accuracy": 0.6,
+      "mean_bertScore_text2vec": 0.8081394365429878
+    },
+    {
+      "slug": "topk_v5_k5_g5",
+      "input": "D:\\graduation project\\datasets\\compare_topk_n50\\topk_v5_k5_g5.csv",
+      "n": 50,
+      "threshold": 0.8,
+      "correct": 29,
+      "accuracy": 0.58,
+      "mean_bertScore_text2vec": 0.8080306372046471
+    },
+    {
+      "slug": "topk_v6_k10_g4",
+      "input": "D:\\graduation project\\datasets\\compare_topk_n50\\topk_v6_k10_g4.csv",
+      "n": 50,
+      "threshold": 0.8,
+      "correct": 28,
+      "accuracy": 0.56,
+      "mean_bertScore_text2vec": 0.7862782844901085
+    },
+    {
+      "slug": "topk_v8_k8_g8",
+      "input": "D:\\graduation project\\datasets\\compare_topk_n50\\topk_v8_k8_g8.csv",
+      "n": 50,
+      "threshold": 0.8,
+      "correct": 29,
+      "accuracy": 0.58,
+      "mean_bertScore_text2vec": 0.7815940156579018
+    }
+  ]
+}

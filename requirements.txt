@@ -1,0 +1,42 @@
+# RAG + Knowledge Graph QA System MVP
+# Python >= 3.10
+
+# Frontend
+streamlit==1.55.0
+
+# Core
+langchain==1.2.12
+langchain-core==1.2.19
+langchain-community==0.4.1
+
+# Vector store & embeddings
+sentence-transformers==5.2.3
+langchain-huggingface>=0.0.1
+langchain-postgres==0.0.17
+psycopg[binary]==3.3.3
+pgvector==0.3.6
+
+# Document parsing
+PyPDF2>=3.0.0
+pymupdf>=1.24.0
+python-docx>=1.1.0
+
+# Knowledge graph (MVP: NetworkX)
+networkx>=3.2
+
+# LLM (OpenAI-compatible: DeepSeek / Qwen / Kimi)
+langchain-openai>=0.0.5
+openai>=1.6.0
+httpx>=0.25.0
+
+# Utils
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+PyYAML==6.0.2
+
+# Phase 2: Multi-agent orchestration & web search
+langgraph>=0.2.0
+tavily-python>=0.5.0
+beautifulsoup4>=4.12.0
+lxml>=5.2.0
+pyvis>=0.3.2

@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-04-12T08:11:59.840313+00:00",
+  "dataset": "D:\\graduation project\\datasets\\crud_read_eval.csv",
+  "output_csv": "D:\\graduation project\\datasets\\compare_rerank_n30_v5k5g10\\rr_m3_cap_auto.csv",
+  "label": "",
+  "vector_top_k": 5,
+  "keyword_top_k": 5,
+  "graph_max": 10,
+  "modes": [
+    "full"
+  ],
+  "per_mode": {
+    "full": {
+      "n": 30,
+      "mean_em": 0.0,
+      "mean_char_f1": 0.577022,
+      "evidence_strict_mean": null,
+      "evidence_any_mean": null,
+      "n_with_evidence": 0,
+      "latency_p50_sec": 14.693,
+      "latency_p95_sec": 17.6504
+    }
+  }
+}
