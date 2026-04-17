@@ -1,4 +1,4 @@
-# RAG + Knowledge Graph 智能问答系统
+# RAG + 知识图谱智能问答系统
 
 基于 CRUD-RAG 评估基准的智能问答系统，使用 RAGQuestEval 框架进行评估。
 
@@ -9,9 +9,9 @@
 ## 核心特性
 
 - **混合检索系统**: 向量检索 + 关键词检索 + BM25 + 知识图谱检索
-- **多智能体工作流**: Router → KGQuery → Join → CheckRelevance → Synthesizer
+- **融合策略**: RRF (Reciprocal Rank Fusion)
+- **重排序**: CrossEncoder (BAAI/bge-reranker-base)
 - **RAGQuestEval 评估**: 基于 CRUD-RAG 论文的问答式评估框架
-- **Streamlit 界面**: Web 端交互式问答和文档管理
 
 ## RAGQuestEval 评估框架
 
@@ -29,68 +29,191 @@
 3. 用生成文本回答同样问题（预测答案）
 4. 计算 F1 分数和 Recall
 
-### 快速测试
+## 实验结果
+
+### 最新测试结果（2条样本示例）
+
+| 策略 | Quest Avg F1 | Quest Recall | 样本数 |
+|------|-------------|-------------|-------|
+| vector_only | 0.4762 ± 0.4762 | 0.5000 ± 0.5000 | 2 |
+| vector_keyword | 0.4615 ± 0.4615 | 0.5000 ± 0.5000 | 2 |
+| full_hybrid | 0.4762 ± 0.4762 | 0.5000 ± 0.5000 | 2 |
+
+**注意**: 这是一个小规模测试（2个样本），结果仅供参考。建议使用更大的样本数（10-50）来获得更可靠的评估结果。
+
+### 1. 激活虚拟环境
 
 ```bash
-# 使用示例数据快速测试
-python scripts/quick_test_ragquesteval.py
-
-# 使用自定义 CSV 测试
-python scripts/test_ragquesteval.py \
-  --result-file datasets/ragquesteval_test_n20.csv \
-  --output-dir datasets \
-  --save-quest-gt
+cd "D:\graduation project"
+.venv\Scripts\Activate.ps1
 ```
 
-### 数据格式
+### 2. 运行检索策略对比实验
 
-CSV 文件需要包含以下列：
+```bash
+# 小规模测试（20条样本，约30分钟）
+python scripts/run_experiment.py \
+  --data-path CRUD_RAG/data/crud_split/split_merged.json \
+  --max-samples 20 \
+  --output-dir datasets/experiment_results
+```
 
-```csv
-ID,ground_truth_text,generated_text
-1,原文内容...,生成内容...
-2,原文内容...,生成内容...
+### 3. 查看结果
+
+```bash
+# 查看检索结果
+cat datasets/experiment_results/retrieval_comparison/comparison_results_20.json
+
+# 查看评估结果
+cat datasets/experiment_results/ragquesteval_evaluation/*.json
+```
+
+## 实验脚本
+
+### 1. run_experiment.py
+
+一键运行完整的检索策略对比实验 + RAGQuestEval 评估。
+
+**参数**:
+- `--data-path`: CRUD-RAG 数据集路径
+- `--max-samples`: 最大样本数（建议20-50）
+- `--output-dir`: 输出目录
+
+**示例**:
+```bash
+python scripts/run_experiment.py --max-samples 20
+```
+
+### 2. run_retrieval_comparison.py
+
+运行检索策略对比实验。
+
+**测试策略**:
+1. vector_only - 仅向量检索
+2. vector_keyword - 向量 + 关键词检索
+3. vector_keyword_bm25 - 向量 + 关键词 + BM25
+4. full_hybrid_no_kg - 完整混合（无知识图谱）
+5. full_hybrid - 完整混合检索
+
+**参数**:
+- `--data-path`: 数据集路径
+- `--max-samples`: 最大样本数
+- `--output-dir`: 输出目录
+- `--custom-config`: 自定义策略配置文件（JSON）
+
+**示例**:
+```bash
+python scripts/run_retrieval_comparison.py \
+  --data-path CRUD_RAG/data/crud_split/split_merged.json \
+  --max-samples 20
+```
+
+### 3. evaluate_ragquesteval.py
+
+使用 RAGQuestEval 评估测试结果。
+
+**参数**:
+- `--results-file`: 测试结果文件路径
+- `--output-dir`: 输出目录
+
+**示例**:
+```bash
+python scripts/evaluate_ragquesteval.py \
+  --results-file datasets/retrieval_comparison/comparison_results_20.json
+```
+
+## 自定义实验
+
+### 自定义检索策略
+
+创建一个 JSON 配置文件（如 `custom_strategies.json`）:
+
+```json
+[
+    {
+        "name": "my_strategy",
+        "description": "我的自定义策略",
+        "config": {
+            "use_keyword_search": true,
+            "use_bm25": true,
+            "use_knowledge_graph": false,
+            "use_rerank": false
+        }
+    }
+]
+```
+
+然后运行:
+```bash
+python scripts/run_retrieval_comparison.py \
+  --custom-config custom_strategies.json
 ```
 
 ## 项目结构
 
 ```
 .
-├── app.py                    # Streamlit 主应用
-├── src/                      # 核心代码
-│   ├── agents/              # 多智能体工作流
-│   ├── config.py            # 配置文件
-│   ├── retriever.py         # 混合检索器
-│   └── generator.py         # 生成器
-├── scripts/                 # 工具脚本
-│   ├── test_ragquesteval.py      # RAGQuestEval 主脚本
-│   ├── quick_test_ragquesteval.py # 快速测试
-│   ├── convert_to_ragquesteval.py # CSV 格式转换
-│   ├── clear_rag_kb.py           # 清空知识库
-│   ├── ingest_crud_news.py       # 入库 CRUD 数据
-│   └── ingest_txt_dir.py         # 入库文本目录
-├── datasets/                # 测试数据和结果
-│   ├── ragquesteval_test_n20.csv # 测试数据
-│   ├── ragquesteval_results_*.json # 评估结果
-│   └── quest_gt_save_*.json       # 问题答案缓存
-├── configs/                 # 配置文件
-├── requirements.txt         # Python 依赖
-└── .env                     # 环境变量
+├── app.py                                    # Streamlit 主应用
+├── README.md                                 # 项目文档
+├── src/                                      # 核心代码
+│   ├── config.py                            # 配置文件
+│   ├── retriever.py                         # 混合检索器
+│   └── generator.py                         # 生成器
+├── scripts/                                  # 实验脚本
+│   ├── run_experiment.py                    # 一键运行实验
+│   ├── run_retrieval_comparison.py          # 检索策略对比
+│   ├── evaluate_ragquesteval.py             # RAGQuestEval 评估
+│   ├── test_ragquesteval.py                 # RAGQuestEval 测试
+│   ├── quick_test_ragquesteval.py           # 快速测试
+│   ├── clear_rag_kb.py                      # 清空知识库
+│   ├── ingest_crud_news.py                  # 入库 CRUD 数据
+│   └── convert_to_ragquesteval.py           # CSV 格式转换
+├── datasets/                                 # 测试数据和结果
+│   └── experiment_results/                  # 实验结果
+├── configs/                                  # 配置文件
+├── CRUD_RAG/                                 # CRUD-RAG 数据集
+│   └── data/crud_split/
+│       └── split_merged.json                # 测试数据（800个问答对）
+├── requirements.txt                          # Python 依赖
+└── .env                                      # 环境变量
 ```
 
-## 快速开始
+## 实验流程
 
-### 1. 安装依赖
+### 完整实验流程
 
 ```bash
-pip install -r requirements.txt
+# 1. 准备数据（首次运行）
+python scripts/ingest_crud_news.py
+
+# 2. 运行实验
+python scripts/run_experiment.py --max-samples 20
+
+# 3. 查看结果
+cat datasets/experiment_results/ragquesteval_evaluation/*.json
 ```
 
-### 2. 配置环境变量
+### 分步实验流程
 
-复制 `.env.example` 为 `.env` 并填写配置：
+```bash
+# 步骤1: 运行检索策略对比
+python scripts/run_retrieval_comparison.py \
+  --data-path CRUD_RAG/data/crud_split/split_merged.json \
+  --max-samples 20 \
+  --output-dir datasets/my_experiment
+
+# 步骤2: 评估结果
+python scripts/evaluate_ragquesteval.py \
+  --results-file datasets/my_experiment/comparison_results_20.json \
+  --output-dir datasets/my_experiment/evaluation
+```
+
+## 环境配置
+
+### .env 配置
 
 ```env
+# LLM 配置
 OPENAI_API_KEY=your_api_key
 OPENAI_API_BASE=https://dashscope.aliyuncs.com/compatible-mode/v1
 OPENAI_MODEL=qwen-flash
@@ -98,153 +221,58 @@ OPENAI_MODEL=qwen-flash
 # PostgreSQL
 POSTGRES_DSN=postgresql://postgres:password@localhost:5432/rag
 PGVECTOR_COLLECTION=crud_eval
+KB_NAMESPACE=crud_eval
 
 # 检索参数
 RETRIEVAL_VECTOR_TOP_K=8
 RETRIEVAL_KEYWORD_TOP_K=8
 RETRIEVAL_GRAPH_MAX=10
+
+# Rerank
+RERANK_ENABLED=1
+RERANK_RECALL_MULT=3
+
+# 其他
+BM25_ENABLED=1
+DOC_ONLY_MODE=0
+INTERNAL_DOC_ONLY_ANSWER=1
 ```
 
-### 3. 运行 RAGQuestEval 评估
+## 注意事项
 
-#### 快速测试（3条示例数据）
+### 1. 虚拟环境
 
-```bash
-python scripts/quick_test_ragquesteval.py
+务必使用虚拟环境运行所有实验：
+
+```powershell
+cd "D:\graduation project"
+.venv\Scripts\Activate.ps1
 ```
 
-#### 完整测试（20条数据）
+### 2. 数据库连接
 
-```bash
-python scripts/test_ragquesteval.py \
-  --result-file datasets/ragquesteval_test_n20.csv \
-  --output-dir datasets \
-  --save-quest-gt
-```
+确保 PostgreSQL 数据库正在运行，并且已安装 pgvector 扩展。
 
-### 4. 运行消融实验（论文用）
+### 3. 测试时间
 
-#### 一键运行完整流程
+| 样本数 | 预计时间 |
+|--------|----------|
+| 10 | 15-20分钟 |
+| 20 | 30-40分钟 |
+| 50 | 1.5-2小时 |
+| 100 | 3-4小时 |
 
-```bash
-python scripts/run_all_tests.py \
-  --test-data datasets/ragquesteval_test_n20.csv \
-  --output-dir datasets/ablation_tests
-```
+### 4. 成本控制
 
-这将自动：
-1. 运行消融实验
-2. 生成对比表格
-3. 生成论文用的 Markdown 和 LaTeX 表格
-
-#### 详细使用指南
-
-查看 [消融实验指南](./ABLATION_TEST_GUIDE.md)
-
-### 5. 入库数据
-
-```bash
-# 入库 CRUD 新闻数据
-python scripts/ingest_crud_news.py
-
-# 入库文本目录
-python scripts/ingest_txt_dir.py data/documents
-```
-
-### 6. 运行 Web 应用
-
-```bash
-streamlit run app.py
-```
-
-### 2. 配置环境变量
-
-复制 `.env.example` 为 `.env` 并填写配置：
-
-```env
-OPENAI_API_KEY=your_api_key
-OPENAI_API_BASE=https://dashscope.aliyuncs.com/compatible-mode/v1
-OPENAI_MODEL=qwen-flash
-
-# PostgreSQL
-POSTGRES_DSN=postgresql://postgres:password@localhost:5432/rag
-PGVECTOR_COLLECTION=crud_eval
-
-# 检索参数
-RETRIEVAL_VECTOR_TOP_K=8
-RETRIEVAL_KEYWORD_TOP_K=8
-RETRIEVAL_GRAPH_MAX=10
-```
-
-### 3. 入库数据
-
-```bash
-# 入库 CRUD 新闻数据
-python scripts/ingest_crud_news.py
-
-# 入库文本目录
-python scripts/ingest_txt_dir.py data/documents
-```
-
-### 4. 运行 Web 应用
-
-```bash
-streamlit run app.py
-```
-
-### 5. 运行评估
-
-```bash
-# 快速测试（3条示例数据）
-python scripts/quick_test_ragquesteval.py
-
-# 完整测试（20条数据）
-python scripts/test_ragquesteval.py \
-  --result-file datasets/ragquesteval_test_n20.csv \
-  --output-dir datasets
-```
-
-## 评估结果
-
-### 最新 RAGQuestEval 测试结果
-
-#### 20 条样本测试
-
-| 指标 | 结果 | 标准差 |
-|------|------|--------|
-| Quest Avg F1 | 0.7587 | ±0.2540 |
-| Quest Recall | 0.6912 | ±0.3577 |
-
-#### 8 条样本测试
-
-| 指标 | 结果 | 标准差 |
-|------|------|--------|
-| Quest Avg F1 | 0.6970 | ±0.2311 |
-| Quest Recall | 0.7917 | ±0.2165 |
-
-### 表现分布（20 条样本）
-
-- **优秀** (≥0.8): 45% (9条)
-- **中等** (0.4-0.8): 25% (5条)
-- **较差** (<0.4): 30% (6条)
-
-### 主要问题
-
-1. **数字准确性**: 不同时间/地点的数据混淆
-2. **检索失败**: 关键词召回不足
-3. **部分信息缺失**: 多子问只回答部分
-
-## 优化方向
-
-1. **实体和时间匹配**: 实现更精确的数字识别和时间范围过滤
-2. **检索召回优化**: 增加 top_k，优化关键词权重
-3. **提示词优化**: 强调完整性要求，增加多子问示例
+RAGQuestEval 需要多次调用 LLM（每条样本约 6-10 次调用）：
+- 10 条样本：约 60-100 次 API 调用
+- 20 条样本：约 120-200 次 API 调用
 
 ## 参考资料
 
 - [CRUD-RAG 论文](https://arxiv.org/abs/2401.17043)
-- [RAGQuestEval 评估指南](./RAGQUESTEVAL_GUIDE.md)
-- [RAGQuestEval 详细总结](./RAGQUESTEVAL_SUMMARY.md)
+- [CRUD-RAG GitHub](https://github.com/IAAR-Shanghai/CRUD_RAG)
+- [GitHub 仓库](https://github.com/qfyw/gp)
 
 ## 许可证
 

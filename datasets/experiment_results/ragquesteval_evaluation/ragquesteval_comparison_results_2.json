@@ -1,0 +1,96 @@
+{
+  "input_file": "datasets/experiment_results\\retrieval_comparison\\comparison_results_2.json",
+  "strategies": [
+    {
+      "strategy": "vector_only",
+      "description": {},
+      "samples": [
+        {
+          "question": "国家卫生健康委员会于2023年7月28日启动了名为\"启明行动\"的专项活动，旨在针对特定群体的特定健康问题进行防控。请问这项活动具体针对哪个群体的健康问题？同时，请提供该活动所依据的指导性文件的名称。",
+          "quest_avg_f1": 0.9523809523809524,
+          "quest_recall": 1.0,
+          "num_questions": 3
+        },
+        {
+          "question": "最近，陕西省西安市发放大量了体育类电子消费券，供市民使用。这些电子消费券的具体金额是多少？可以在多少家体育场馆使用？",
+          "quest_avg_f1": 0.0,
+          "quest_recall": 0.0,
+          "num_questions": 3
+        }
+      ],
+      "quest_avg_f1_scores": [
+        0.9523809523809524,
+        0.0
+      ],
+      "quest_recall_scores": [
+        1.0,
+        0.0
+      ],
+      "avg_quest_avg_f1": 0.4761904761904762,
+      "avg_quest_recall": 0.5,
+      "std_quest_avg_f1": 0.4761904761904762,
+      "std_quest_recall": 0.5
+    },
+    {
+      "strategy": "vector_keyword",
+      "description": {},
+      "samples": [
+        {
+          "question": "国家卫生健康委员会于2023年7月28日启动了名为\"启明行动\"的专项活动，旨在针对特定群体的特定健康问题进行防控。请问这项活动具体针对哪个群体的健康问题？同时，请提供该活动所依据的指导性文件的名称。",
+          "quest_avg_f1": 0.923076923076923,
+          "quest_recall": 1.0,
+          "num_questions": 3
+        },
+        {
+          "question": "最近，陕西省西安市发放大量了体育类电子消费券，供市民使用。这些电子消费券的具体金额是多少？可以在多少家体育场馆使用？",
+          "quest_avg_f1": 0.0,
+          "quest_recall": 0.0,
+          "num_questions": 3
+        }
+      ],
+      "quest_avg_f1_scores": [
+        0.923076923076923,
+        0.0
+      ],
+      "quest_recall_scores": [
+        1.0,
+        0.0
+      ],
+      "avg_quest_avg_f1": 0.4615384615384615,
+      "avg_quest_recall": 0.5,
+      "std_quest_avg_f1": 0.4615384615384615,
+      "std_quest_recall": 0.5
+    },
+    {
+      "strategy": "full_hybrid",
+      "description": {},
+      "samples": [
+        {
+          "question": "国家卫生健康委员会于2023年7月28日启动了名为\"启明行动\"的专项活动，旨在针对特定群体的特定健康问题进行防控。请问这项活动具体针对哪个群体的健康问题？同时，请提供该活动所依据的指导性文件的名称。",
+          "quest_avg_f1": 0.9523809523809524,
+          "quest_recall": 1.0,
+          "num_questions": 3
+        },
+        {
+          "question": "最近，陕西省西安市发放大量了体育类电子消费券，供市民使用。这些电子消费券的具体金额是多少？可以在多少家体育场馆使用？",
+          "quest_avg_f1": 0.0,
+          "quest_recall": 0.0,
+          "num_questions": 3
+        }
+      ],
+      "quest_avg_f1_scores": [
+        0.9523809523809524,
+        0.0
+      ],
+      "quest_recall_scores": [
+        1.0,
+        0.0
+      ],
+      "avg_quest_avg_f1": 0.4761904761904762,
+      "avg_quest_recall": 0.5,
+      "std_quest_avg_f1": 0.4761904761904762,
+      "std_quest_recall": 0.5
+    }
+  ],
+  "timestamp": "2026-04-16T16:59:25.733517"
+}

@@ -68,7 +68,16 @@ class RAGQuestEval:
 
 现在你需要为这篇新闻设计问题，尽量涵盖大多数关键信息，请尽量让答案可以用两三个词回答，答案不能太长，key_info包含文章中的所有实体和名词性短语，question与key_info一一对应，数量一致，输出用json的格式：
 
-{news}"""
+新闻内容：
+{news}
+
+请严格按照以下JSON格式返回，不要添加任何其他文字或说明：
+```json
+{{
+  "key_info": ["关键信息1", "关键信息2", ...],
+  "question": ["问题1", "问题2", ...]
+}}
+```"""
 
         self.json_response_example = '''{"key_info": ["新增并网光伏发电容量1060万千瓦", "四分之一", "全国新增光伏电站855万千瓦", "分布式光伏容量205万千瓦", "2014年中国光伏发电量250亿千瓦。", "同比增长超过200%"], "question": ["2014年中国新增并网光伏发电容量是多少？", "2014年中国新增并网光伏发电容量约占全球新增容量的几分之几？","全国新增光伏电站的容量是多少？", "分布式光伏容量是多少？", "2014年中国光伏发电量是多少？", "2014年中国光伏发电量相比前一年增长了多少？"]}'''
 
@@ -128,14 +137,88 @@ class RAGQuestEval:
             news=text4gen
         )
 
-        try:
-            resp = self.llm.invoke(query)
-            text = resp.content if hasattr(resp, 'content') else str(resp)
-            question4eval = json.loads(text)
-            return question4eval
-        except Exception as e:
-            print(f"问题生成失败: {e}")
-            return {"key_info": [], "question": []}
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                resp = self.llm.invoke(query)
+                text = resp.content if hasattr(resp, 'content') else str(resp)
+                
+                # 清理文本，去除可能的markdown标记
+                text = text.strip()
+                if text.startswith('```json'):
+                    text = text[7:]
+                if text.startswith('```'):
+                    text = text[3:]
+                if text.endswith('```'):
+                    text = text[:-3]
+                text = text.strip()
+                
+                # 尝试直接解析 JSON
+                question4eval = json.loads(text)
+                
+                # 验证返回的格式
+                if not isinstance(question4eval, dict):
+                    raise ValueError("返回的不是字典")
+                if "question" not in question4eval:
+                    raise ValueError("缺少 question 字段")
+                if not isinstance(question4eval["question"], list):
+                    raise ValueError("question 不是列表")
+                
+                # 确保有至少一个问题
+                if len(question4eval["question"]) == 0:
+                    raise ValueError("没有生成任何问题")
+                
+                return question4eval
+                
+            except json.JSONDecodeError as e:
+                print(f"问题生成失败 (尝试 {attempt + 1}/{max_retries}): JSON 解析错误 - {e}")
+                if attempt == 0:
+                    # 第一次失败时打印原始响应，方便调试
+                    print(f"原始响应内容: {text[:500]}...")
+                
+                if attempt < max_retries - 1:
+                    continue
+                
+                # 最后一次尝试：使用多种方法提取 JSON
+                # 方法1：查找大括号内的内容
+                json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', text, re.DOTALL)
+                if json_match:
+                    try:
+                        question4eval = json.loads(json_match.group())
+                        if "question" in question4eval and len(question4eval["question"]) > 0:
+                            return question4eval
+                    except:
+                        pass
+                
+                # 方法2：查找完整的 JSON 对象（包括嵌套）
+                brace_count = 0
+                start_idx = -1
+                for i, char in enumerate(text):
+                    if char == '{':
+                        if brace_count == 0:
+                            start_idx = i
+                        brace_count += 1
+                    elif char == '}':
+                        brace_count -= 1
+                        if brace_count == 0 and start_idx >= 0:
+                            try:
+                                json_str = text[start_idx:i+1]
+                                question4eval = json.loads(json_str)
+                                if "question" in question4eval and len(question4eval["question"]) > 0:
+                                    return question4eval
+                            except:
+                                pass
+                
+                print(f"无法解析响应内容，返回默认值")
+                return {"key_info": [], "question": []}
+                
+            except Exception as e:
+                print(f"问题生成失败 (尝试 {attempt + 1}/{max_retries}): {e}")
+                import traceback
+                traceback.print_exc()
+                if attempt < max_retries - 1:
+                    continue
+                return {"key_info": [], "question": []}
 
     def question_answer(self, context: str, questions: List[str]) -> List[str]:
         """根据上下文回答问题"""
@@ -144,15 +227,41 @@ class RAGQuestEval:
             questions=json.dumps(questions, ensure_ascii=False)
         )
 
-        try:
-            resp = self.llm.invoke(query)
-            text = resp.content if hasattr(resp, 'content') else str(resp)
-            pattern = r'<response>\s*(.*?)\s*</response>'
-            real_answers = re.findall(pattern, text, re.DOTALL)
-            return real_answers
-        except Exception as e:
-            print(f"回答生成失败: {e}")
-            return ["无法推断"] * len(questions)
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                resp = self.llm.invoke(query)
+                text = resp.content if hasattr(resp, 'content') else str(resp)
+                
+                # 尝试使用正则表达式提取答案
+                pattern = r'<response>\s*(.*?)\s*</response>'
+                real_answers = re.findall(pattern, text, re.DOTALL | re.IGNORECASE)
+                
+                # 验证答案数量
+                if len(real_answers) == len(questions):
+                    return real_answers
+                elif len(real_answers) > len(questions):
+                    return real_answers[:len(questions)]
+                elif len(real_answers) > 0:
+                    # 答案数量不足，用"无法推断"补充
+                    return real_answers + ["无法推断"] * (len(questions) - len(real_answers))
+                else:
+                    # 没有找到 <response> 标签，尝试其他格式
+                    # 尝试按行分割，寻找可能的答案
+                    lines = [line.strip() for line in text.split('\n') if line.strip()]
+                    if len(lines) >= len(questions):
+                        return lines[:len(questions)]
+                    
+                    raise ValueError("无法从响应中提取答案")
+                    
+            except Exception as e:
+                print(f"回答生成失败 (尝试 {attempt + 1}/{max_retries}): {e}")
+                if attempt < max_retries - 1:
+                    continue
+        
+        # 所有尝试都失败，返回默认值
+        print(f"警告：无法为 {len(questions)} 个问题生成答案，返回默认值")
+        return ["无法推断"] * len(questions)
 
     def get_qa_pair(self, data_point: Dict) -> Tuple[List[str], List[str], List[str]]:
         """获取问答对"""
@@ -185,6 +294,16 @@ class RAGQuestEval:
         try:
             questions_gt, answers_gt4gt, answers_gm4gt = self.get_qa_pair(data_point)
 
+            # 检查是否生成了问题
+            if not questions_gt or len(questions_gt) == 0:
+                print(f"警告：样本 {data_point.get('ID', 'unknown')} 没有生成任何问题，跳过评估")
+                return 0.0, 0.0, {
+                    "questions_gt": [],
+                    "answers_gt4gt": [],
+                    "answers_gm4gt": [],
+                    "error": "no_questions_generated"
+                }
+
             quest_eval_save = {
                 "questions_gt": questions_gt,
                 "answers_gt4gt": answers_gt4gt,
@@ -193,37 +312,44 @@ class RAGQuestEval:
 
             # 去除 ground truth 无法推断的问题
             indices = [i for i, x in enumerate(answers_gt4gt) if x != "无法推断"]
-            answers_gm4gt = [answers_gm4gt[i] for i in indices]
-            answers_gt4gt = [answers_gt4gt[i] for i in indices]
+            if not indices:
+                print(f"警告：样本 {data_point.get('ID', 'unknown')} 所有问题都无法从 ground truth 推断")
+                return 0.0, 0.0, quest_eval_save
+            
+            answers_gm4gt_filtered = [answers_gm4gt[i] for i in indices]
+            answers_gt4gt_filtered = [answers_gt4gt[i] for i in indices]
 
-            if len(answers_gm4gt) == 0:
-                return 0, 0, quest_eval_save
+            if len(answers_gm4gt_filtered) == 0:
+                return 0.0, 0.0, quest_eval_save
 
             # 计算 Quest Recall
-            undetermined_ratio = answers_gm4gt.count("无法推断") / len(answers_gm4gt)
+            undetermined_ratio = answers_gm4gt_filtered.count("无法推断") / len(answers_gm4gt_filtered)
             quest_recall = 1 - undetermined_ratio
 
             # 去除无法推断的问题，计算 F1
-            indices = [i for i, x in enumerate(answers_gm4gt) if x != "无法推断"]
-            answers_gm4gt = [answers_gm4gt[i] for i in indices]
-            answers_gt4gt = [answers_gt4gt[i] for i in indices]
-
-            if answers_gm4gt == []:
-                return 0, 0, quest_eval_save
+            f1_indices = [i for i, x in enumerate(answers_gm4gt_filtered) if x != "无法推断"]
+            if not f1_indices:
+                return 0.0, quest_recall, quest_eval_save
+            
+            answers_gm4gt_for_f1 = [answers_gm4gt_filtered[i] for i in f1_indices]
+            answers_gt4gt_for_f1 = [answers_gt4gt_filtered[i] for i in f1_indices]
 
             # 计算 Quest Avg F1
-            quest_avg_f1 = word_based_f1_score(answers_gt4gt, answers_gm4gt)
+            quest_avg_f1 = word_based_f1_score(answers_gt4gt_for_f1, answers_gm4gt_for_f1)
 
             return quest_avg_f1, quest_recall, quest_eval_save
 
         except Exception as e:
             print(f"评估失败: {e}")
+            import traceback
+            traceback.print_exc()
             quest_eval_save = {
                 "questions_gt": [],
                 "answers_gt4gt": [],
-                "answers_gm4gt": []
+                "answers_gm4gt": [],
+                "error": str(e)
             }
-            return 0, 0, quest_eval_save
+            return 0.0, 0.0, quest_eval_save
 
     def evaluate_batch(self, data_points: List[Dict]) -> Dict:
         """批量评估"""
